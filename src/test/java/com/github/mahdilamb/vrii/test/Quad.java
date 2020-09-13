@@ -13,7 +13,7 @@ import java.nio.IntBuffer;
 import static com.jogamp.opengl.GL.*;
 
 public class Quad extends Renderer {
-    final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\quad"));
+    final Program program = new Program(new File("resources\\shaders\\quad"));
 
     static {
         ColorMap.opacityNodes[0] = 0;
@@ -34,12 +34,12 @@ public class Quad extends Renderer {
     public Quad() throws IOException {
         super(new Volume(new MosaicVolumeSource(
                         "Brain - Water",
-                        new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
+                        new File("resources\\volumes\\sagittal.png"),
                         2,
                         176,
                         .7f
                 )),
-                new ColorMap(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings\\colors1.png"))
+                new ColorMap(new File("resources\\colorMappings\\colors1.png"))
         );
         colorMap.setRenderer(this);
         getCanvas().addGLEventListener(new GLEventListener() {

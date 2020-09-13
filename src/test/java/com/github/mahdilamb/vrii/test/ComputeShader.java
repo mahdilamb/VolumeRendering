@@ -15,8 +15,8 @@ import static com.jogamp.opengl.GL.*;
 
 public class ComputeShader extends Renderer {
 
-    private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\compute\\"));
-    private final Program quadProgram = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\compute\\quad\\"));
+    private final Program program = new Program(new File("resources\\shaders\\compute\\"));
+    private final Program quadProgram = new Program(new File("resources\\shaders\\compute\\quad\\"));
 
     private final ComputeTexture texture = new ComputeTexture(this, 16);
 

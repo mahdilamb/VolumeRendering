@@ -15,17 +15,17 @@ import static com.jogamp.opengl.GL.*;
 
 public class Cube extends Renderer {
 
-    private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\cube"));
+    private final Program program = new Program(new File("resources\\shaders\\cube"));
     long lastTime = System.nanoTime();
     public Cube() throws IOException {
         super(new Volume(new MosaicVolumeSource(
                         "Brain - Water",
-                        new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
+                        new File("resources\\volumes\\sagittal.png"),
                         2,
                         176,
                         .7f
                 )),
-                new ColorMap(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings\\colors1.png"))
+                new ColorMap(new File("resources\\colorMappings\\colors1.png"))
         );
         colorMap.setRenderer(this);
         getCanvas().addGLEventListener(new GLEventListener() {
