@@ -72,6 +72,9 @@ public class Quad extends Renderer {
                 program.allocateUniform(gl, "tex", (gl2, loc) -> {
                     gl2.glUniform1i(loc, 0);
                 });
+                program.allocateUniform(gl, "zScale", (gl2, loc) -> {
+                    gl2.glUniform1f(loc, volume.getScale(2));
+                });
                 program.allocateUniform(gl, "colorMap", (gl2, loc) -> {
                     gl2.glUniform1i(loc, 1);
                 });

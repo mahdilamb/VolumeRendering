@@ -7,10 +7,7 @@ uniform mat4 iP;
 uniform int depthSampleCount;
 uniform sampler3D tex;
 uniform sampler2D colorMap;
-vec3 aabb[2] = vec3[2](
-vec3(-1.0, -1.0, -1.0),
-vec3(1.0, 1.0, 1.0)
-);
+uniform float zScale;
 
 struct Ray {
     vec3 origin;
@@ -78,17 +75,19 @@ void main() {
 
     vec4 pixel = vec4(0);
     Ray ray = CreateCameraRay(uv);
-
+    vec3 aabb[2] = vec3[2](
+    vec3(-1.0, -1.0, -zScale),
+    vec3(1.0, 1.0, zScale)
+    );
     float tmin = 0.0;
     float tmax = 0.0;
     intersect(ray, aabb, tmin, tmax);
 
     if (tmax >= tmin){
 
-        vec3 start = ray.origin.xyz + tmin*ray.direction.xyz;
-        vec3 end = ray.origin.xyz + tmax*ray.direction.xyz;
-        start = (start+vec3(1))/vec3(2);
-        end = (end+vec3(1))/vec3(2);
+        vec3 start = (ray.origin.xyz + tmin*ray.direction.xyz - aabb[0])/(aabb[1]-aabb[0]);
+        vec3 end = (ray.origin.xyz + tmax*ray.direction.xyz - aabb[0])/(aabb[1]-aabb[0]);
+
         float len = distance(end, start);
         int sampleCount = int(float(depthSampleCount)*len);
         vec3 increment = (end-start)/float(sampleCount);

@@ -55,6 +55,9 @@ public class ComputeShader extends Renderer {
                 program.allocateUniform(gl, "colorMap", (gl2, loc) -> {
                     gl2.glUniform1i(loc, 1);
                 });
+                program.allocateUniform(gl, "zScale", (gl2, loc) -> {
+                    gl2.glUniform1f(loc, volume.getScale(2));
+                });
                 final IntBuffer intBuffer = IntBuffer.allocate(1);
 
                 texture.init(gl);

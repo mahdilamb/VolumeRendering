@@ -11,10 +11,7 @@ uniform float zScale;
 out vec4 color;
 
 
-vec3 aabb[2] = vec3[2](
-vec3(-1.0, -1.0, -1.0),
-vec3(1.0, 1.0, 1.0)
-);
+
 
 struct Ray {
     vec3 origin;
@@ -71,19 +68,25 @@ out float tmin, out float tmax
 void main(){
     vec2 vUV = 2.0 * gl_FragCoord.xy / viewSize - 1.0;
     Ray ray = CreateCameraRay(vUV);
+  //  ray.direction.z /= zScale;
+   // ray.origin.z /= zScale;
+    vec3 aabb[2] = vec3[2](
+    vec3(-1.0, -1.0, -zScale),
+    vec3(1.0, 1.0, zScale)
+    );
 
     float tmin = 0.0;
     float tmax = 0.0;
+
     intersect(ray, aabb, tmin, tmax);
     if (tmax < tmin){
         discard;
         return;
     }
 
-    vec3 start = ray.origin.xyz + tmin*ray.direction.xyz;
-    vec3 end = ray.origin.xyz + tmax*ray.direction.xyz;
-    start = (start+1)/2;
-    end = (end+1)/2;
+    vec3 start = (ray.origin.xyz + tmin*ray.direction.xyz - aabb[0])/(aabb[1]-aabb[0]);
+    vec3 end = (ray.origin.xyz + tmax*ray.direction.xyz - aabb[0])/(aabb[1]-aabb[0]);
+
     float len = distance(end, start);
     int sampleCount = int(float(depthSampleCount)*len);
     vec3 increment = (end-start)/float(sampleCount);
@@ -96,13 +99,13 @@ void main(){
     vec3 texCo = vec3(0.0, 0.0, 0.0);
 
     float last = 0.0;
-    for(int count = 0; count < sampleCount; count++){
+    for (int count = 0; count < sampleCount; count++){
 
         texCo = mix(start, end, float(count)/float(sampleCount));// - originOffset;
 
         px = max(px, texture(tex, texCo).r);
 
-        if(px >= 0.99){
+        if (px >= 0.99){
             break;
         }
     }

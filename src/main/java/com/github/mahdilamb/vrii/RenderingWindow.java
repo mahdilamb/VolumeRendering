@@ -68,6 +68,8 @@ public class RenderingWindow implements Runnable {
         cGBC.gridx = 0;
         cGBC.weighty = 1;
         cGBC.fill = GridBagConstraints.BOTH;
+        controls.add(new JLabel("volume"), cGBC);
+
         controls.add(new JComboBox<MosaicVolumeSource>() {{
                          addItem(new MosaicVolumeSource(
                                  "Brain - Water",
@@ -134,6 +136,8 @@ public class RenderingWindow implements Runnable {
                          });
                      }},
                 cGBC);
+        controls.add(new JLabel("Colormap"), cGBC);
+
         controls.add(new JComboBox<ColorMap>() {{
                          final File directory = Utils.getFilePath(new File("resources\\colorMappings"));
                          for (final File file : directory.listFiles()) {
@@ -147,12 +151,15 @@ public class RenderingWindow implements Runnable {
                          setSelectedIndex(4);
                      }},
                 cGBC);
+        controls.add(new JLabel("Opacity min/max"), cGBC);
         controls.add(new JSlider(0, 1000, 0) {{
             addChangeListener(e -> renderer.setOpacityMin(((float) ((JSlider) e.getSource()).getValue()) / 1000));
         }}, cGBC);
         controls.add(new JSlider(0, 1000, 1000) {{
             addChangeListener(e -> renderer.setOpacityMax(((float) ((JSlider) e.getSource()).getValue()) / 1000));
         }}, cGBC);
+        controls.add(new JLabel("Depth sample count"), cGBC);
+
         controls.add(
                 new JTextField("512") {{
                     addFocusListener(new FocusListener() {

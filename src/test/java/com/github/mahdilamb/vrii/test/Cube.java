@@ -54,7 +54,9 @@ public class Cube extends Renderer {
                 program.allocateUniform(gl, "iP", (gl2, loc) -> {
                     gl2.glUniformMatrix4fv(loc, 1, false, getCamera().getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
                 });
-
+                program.allocateUniform(gl, "zScale", (gl2, loc) -> {
+                    gl2.glUniform1f(loc, volume.getScale(2));
+                });
                 program.allocateUniform(gl, "viewSize", (gl2, loc) -> {
                     gl2.glUniform2f(loc, getWidth(), getHeight());
                 });

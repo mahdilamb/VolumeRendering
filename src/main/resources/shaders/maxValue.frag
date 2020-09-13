@@ -17,11 +17,6 @@ in vec2 texCoord;
 
 out vec4 color;
 
-vec3 aabb[2] = vec3[2](
-	vec3(0.0, 0.0, 0.0),
-	vec3(1.0, 1.0, 1.0)
-);
-
 struct Ray {
     vec3 origin;
     vec3 direction;
