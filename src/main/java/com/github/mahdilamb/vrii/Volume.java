@@ -11,8 +11,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.Buffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 import static com.jogamp.opengl.GL.*;
 import static com.jogamp.opengl.GL2ES2.GL_TEXTURE_3D;
@@ -37,7 +35,7 @@ public class Volume extends Texture {
         this.height = height;
         this.depth = depth;
 
-        InputStream is = new FileInputStream(file);
+        final InputStream is = new FileInputStream(Utils.getFilePath(file));
         data = new byte[width * height * depth];
         is.read(data);
         for (final byte b : data) {
@@ -55,7 +53,7 @@ public class Volume extends Texture {
 
     public Volume(MosaicVolumeSource source) throws IOException {
 
-        final BufferedImage bufferedImage = ImageIO.read(source.getFile());
+        final BufferedImage bufferedImage = ImageIO.read(Utils.getFilePath(source.getFile()));
         width = bufferedImage.getWidth() / source.getNColumns();
         height = bufferedImage.getHeight() / source.getNRows();
         depth = source.getNSlices();
@@ -172,7 +170,6 @@ public class Volume extends Texture {
         hasChanges = false;
 
     }
-
 
 
     public float[] getScale() {

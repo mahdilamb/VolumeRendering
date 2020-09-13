@@ -33,12 +33,12 @@ public abstract class Renderer {
     public Renderer() throws IOException {
         this(new Volume(new MosaicVolumeSource(
                         "Brain - Water",
-                        new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
+                        new File("resources\\volumes\\sagittal.png"),
                         2,
                         176,
                         .7f
                 )),
-                new ColorMap( new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings\\colors1.png"))
+                new ColorMap( new File("resources\\colorMappings\\colors1.png"))
         );
 
     }

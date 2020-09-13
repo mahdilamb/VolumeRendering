@@ -14,8 +14,8 @@ public class ComputeTexture extends Texture {
         gl.glBindTexture(GL_TEXTURE_2D, getTextureID());
         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Renderer.getWidth(), Renderer.getHeight(), 0, GL_RGBA, GL_FLOAT,
                 null);
         gl.glBindImageTexture(0, getTextureID(), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
