@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.jogamp.opengl.GL.*;
+import static org.joml.Math.clamp;
 
 public class ColorMap extends Texture {
     final byte[] originalColors = new byte[256 * 3];
@@ -97,7 +98,7 @@ public class ColorMap extends Texture {
                 } else if (px > ColorMap.colorRange[0]) {
                     colorI = Math.round(((((float) i) / 255) - ColorMap.colorRange[0]) * (1f / colorRange) * 255f);
                 }
-
+                colorI = clamp(0, 255, colorI);
                 float r = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 0])) / 255;
                 float g = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 1])) / 255;
                 float b = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 2])) / 255;

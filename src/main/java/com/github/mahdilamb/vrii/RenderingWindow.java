@@ -140,17 +140,27 @@ public class RenderingWindow implements Runnable {
 
         controls.add(new JComboBox<ColorMap>() {{
                          final File directory = Utils.getFilePath(new File("resources\\colorMappings"));
-                         for (final File file : directory.listFiles()) {
-                             if (file.isDirectory()) {
-                                 continue;
+                         if (directory.isDirectory()) {
+                             for (final File file : directory.listFiles()) {
+                                 if (file.isDirectory()) {
+                                     continue;
+                                 }
+                                 addItem(new ColorMap((RenderingWindow.this.renderer), file));
                              }
-                             addItem(new ColorMap((RenderingWindow.this.renderer), file));
                          }
+
                          setRenderer(new ColorMapCellRenderer());
                          addActionListener(e -> (RenderingWindow.this.renderer).setColorMap((ColorMap) ((JComboBox<ColorMap>) e.getSource()).getSelectedItem()));
                          setSelectedIndex(4);
                      }},
                 cGBC);
+        controls.add(new JLabel("ColorMap min/max"), cGBC);
+        controls.add(new JSlider(0, 1000, 0) {{
+            addChangeListener(e -> renderer.setColorMapMin(((float) ((JSlider) e.getSource()).getValue()) / 1000));
+        }}, cGBC);
+        controls.add(new JSlider(0, 1000, 1000) {{
+            addChangeListener(e -> renderer.setColorMapMax(((float) ((JSlider) e.getSource()).getValue()) / 1000));
+        }}, cGBC);
         controls.add(new JLabel("Opacity min/max"), cGBC);
         controls.add(new JSlider(0, 1000, 0) {{
             addChangeListener(e -> renderer.setOpacityMin(((float) ((JSlider) e.getSource()).getValue()) / 1000));

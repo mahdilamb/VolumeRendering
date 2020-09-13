@@ -126,11 +126,11 @@ public abstract class Renderer {
 
 
     public synchronized void setVolume(MosaicVolumeSource volume) throws IOException {
-        setVolume(new VolumeWithCube(volume));
+        setVolume(new Volume(volume));
 
     }
 
-    public void setVolume(VolumeWithCube volume) {
+    public void setVolume(Volume volume) {
         this.volume = volume;
         this.volume.hasChanges = true;
         redraw();
@@ -168,5 +168,19 @@ public abstract class Renderer {
 
     public Camera getCamera() {
         return camera;
+    }
+
+    public void setColorMapMin(float v) {
+        ColorMap.colorRange[0] = v;
+        ColorMap.hasChanges = true;
+        redraw();
+
+
+    }
+
+    public void setColorMapMax(float v) {
+        ColorMap.colorRange[1] = v;
+        ColorMap.hasChanges = true;
+        redraw();
     }
 }
