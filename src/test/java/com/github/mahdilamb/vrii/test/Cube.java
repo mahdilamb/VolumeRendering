@@ -16,7 +16,7 @@ import static com.jogamp.opengl.GL.*;
 public class Cube extends Renderer {
 
     private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\cube"));
-
+    long lastTime = System.nanoTime();
     public Cube() throws IOException {
         super(new Volume(new MosaicVolumeSource(
                         "Brain - Water",
@@ -94,6 +94,9 @@ public class Cube extends Renderer {
                 // Draw the triangle !
                 gl.glDrawArrays(GL_TRIANGLES, 0, vertexBufferData.length / 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
                 gl.glDisableVertexAttribArray(0);
+                final long thisTime = System.nanoTime();
+                System.out.println(1 / (((float) thisTime - lastTime) / 1_000_000_000));
+                lastTime = thisTime;
             }
 
             @Override
