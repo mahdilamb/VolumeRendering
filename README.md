@@ -1,5 +1,5 @@
 # VolumeRendering
-Inspired by [https://github.com/RolandR/VolumeRayCasting], some tests using ray casting in Java. 
+Inspired by https://github.com/RolandR/VolumeRayCasting, some tests using ray casting in Java. 
 
 All implementations are single-pass.
 
