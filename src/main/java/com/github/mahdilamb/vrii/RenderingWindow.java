@@ -68,56 +68,56 @@ public class RenderingWindow implements Runnable {
         controls.add(new JComboBox<MosaicVolumeSource>() {{
                          addItem(new MosaicVolumeSource(
                                  "Brain - Water",
-                                 new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
+                                 new File("resources\\volumes\\sagittal.png"),
                                  2,
                                  176,
                                  .7f
                          ));
                          addItem(new MosaicVolumeSource(
                                  "Brain - Vessels",
-                                 new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\vessels.png"),
+                                 new File("resources\\volumes\\vessels.png"),
                                  1,
                                  160,
                                  .65f
                          ));
                          addItem(new MosaicVolumeSource(
                                  "Wrist",
-                                 new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\handgelenk.jpg"),
+                                 new File("resources\\volumes\\handgelenk.jpg"),
                                  4,
                                  316,
                                  1.5f
                          ));
                          addItem(new MosaicVolumeSource(
                                  "Wrist 2",
-                                 new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\handgelenk2.jpg"),
+                                 new File("resources\\volumes\\handgelenk2.jpg"),
                                  2,
                                  160,
                                  .5f
                          ));
                          addItem(new MosaicVolumeSource(
                                  "Broccoli",
-                                 new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\broccoli.png"),
+                                 new File("resources\\volumes\\broccoli.png"),
                                  1,
                                  50,
                                  .7f
                          ));
                          addItem(new MosaicVolumeSource(
                                  "Sphere (Anti-aliased)",
-                                 new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sphere_antialiased.png"),
+                                 new File("resources\\volumes\\sphere_antialiased.png"),
                                  16,
                                  256,
                                  1f
                          ));
                          addItem(new MosaicVolumeSource(
                                  "Cube",
-                                 new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\cuuube.png"),
+                                 new File("resources\\volumes\\cuuube.png"),
                                  16,
                                  128,
                                  1f
                          ));
                          addItem(new MosaicVolumeSource(
                                  "Small Sphere",
-                                 new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\smallsphere.png"),
+                                 new File("resources\\volumes\\smallsphere.png"),
                                  16,
                                  128,
                                  1f
@@ -132,7 +132,7 @@ public class RenderingWindow implements Runnable {
                      }},
                 cGBC);
         controls.add(new JComboBox<ColorMap>() {{
-                         final File directory = new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings");
+                         final File directory = Utils.getFilePath(new File("resources\\colorMappings"));
                          for (final File file : directory.listFiles()) {
                              if (file.isDirectory()) {
                                  continue;

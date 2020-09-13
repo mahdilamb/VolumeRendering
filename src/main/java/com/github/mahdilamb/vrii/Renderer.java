@@ -1,12 +1,16 @@
 package com.github.mahdilamb.vrii;
 
 
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 
 import java.io.File;
 import java.io.IOException;
+
+import static com.jogamp.opengl.GL.*;
 
 public abstract class Renderer {
 
@@ -29,17 +33,43 @@ public abstract class Renderer {
         canvas.addMouseWheelListener(controls);
         canvas.addMouseMotionListener(controls);
         canvas.addMouseListener(controls);
+        canvas.addGLEventListener(new GLEventListener() {
+            @Override
+            public void init(GLAutoDrawable drawable) {
+                System.out.println(drawable.getGL().glGetString(GL_RENDERER));
+                System.out.println(drawable.getGL().glGetString(GL_VENDOR));
+                System.out.println(drawable.getGL().glGetString(GL_VERSION));
+                System.out.println(drawable.getGL().glGetString(GL_EXTENSIONS));
+
+            }
+
+            @Override
+            public void dispose(GLAutoDrawable drawable) {
+
+            }
+
+            @Override
+            public void display(GLAutoDrawable drawable) {
+
+            }
+
+            @Override
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+
+            }
+        });
     }
     public Renderer() throws IOException {
         this(new Volume(new MosaicVolumeSource(
                         "Brain - Water",
-                        new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
+                        new File("resources\\volumes\\sagittal.png"),
                         2,
                         176,
                         .7f
                 )),
-                new ColorMap( new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings\\colors1.png"))
+                new ColorMap( new File("resources\\colorMappings\\colors1.png"))
         );
+
 
     }
     public void redraw() {

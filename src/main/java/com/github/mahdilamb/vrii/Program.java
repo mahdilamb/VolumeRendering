@@ -27,44 +27,14 @@ public class Program {
     private final Map<Integer, String> shaderCode = new HashMap<>();
     private final Map<Integer, Integer> shaderIds = new HashMap<>();
 
-
-    static final File vertexShaderFile = new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\vertex.vert");
-    public static Program specular;
-    public static Program basic;
-    public static Program maxIntensity;
-    public static Program shaded;
-    public static Program realistic;
-    public static Program edges;
-    public static Program test;
-
     final static Map<String, Integer> attributeLocations = new HashMap<>();
     final static Map<String, Integer> uniformLocations = new HashMap<>();
     final static Map<String, BiConsumer<GL2, Integer>> uniforms = new HashMap<>();
 
 
-    static {
-        try {
-
-            maxIntensity = new Program(
-                    "MaximumIntensity",
-                    vertexShaderFile,
-                    new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\maxValue.frag")
-            );
-
-            test = new Program(
-                    "Test",
-                    new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\test.vert"),
-                    new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\test.frag")
-            );
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public Program(File file) throws IOException {
         this.name = null;
-
+        file = Utils.getFilePath(file);
         final File directory = file.isDirectory() ? file : new File(file.getParent());
         final String mask = file.isDirectory() ? "" : file.getName();
         for (final File tmpFile : directory.listFiles()) {
@@ -97,8 +67,8 @@ public class Program {
 
     Program(String name, File vertexShaderFile, File fragmentShaderFile) throws IOException {
         this.name = name;
-        shaderCode.put(GL_VERTEX_SHADER, Files.readAllLines(Paths.get(vertexShaderFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
-        shaderCode.put(GL_FRAGMENT_SHADER, Files.readAllLines(Paths.get(fragmentShaderFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
+        shaderCode.put(GL_VERTEX_SHADER, Files.readAllLines(Paths.get(Utils.getFilePath(vertexShaderFile).getAbsolutePath())).stream().collect(Collectors.joining("\n")));
+        shaderCode.put(GL_FRAGMENT_SHADER, Files.readAllLines(Paths.get(Utils.getFilePath(fragmentShaderFile).getAbsolutePath())).stream().collect(Collectors.joining("\n")));
 
     }
 
@@ -151,7 +121,6 @@ public class Program {
     public void destroy(GL2 gl) {
         if (programId != null) {
             for (final Map.Entry<Integer, Integer> shaderId : shaderIds.entrySet()) {
-
                 gl.glDetachShader(programId, shaderId.getValue());
                 gl.glDeleteShader(shaderId.getValue());
             }

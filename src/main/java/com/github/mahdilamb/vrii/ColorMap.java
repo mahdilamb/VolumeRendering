@@ -22,7 +22,7 @@ public class ColorMap extends Texture {
 
     public ColorMap(Renderer renderer, File source) throws IOException {
         this.renderer = renderer;
-        final BufferedImage bufferedImage = ImageIO.read(source);
+        final BufferedImage bufferedImage = ImageIO.read(Utils.getFilePath(source));
         for (int i = 0; i < 256; i++) {
             final int color = bufferedImage.getRGB(i, 0);
 
