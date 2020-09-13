@@ -96,9 +96,8 @@ public class ColorMap extends Texture {
                 if (px > ColorMap.colorRange[1] * 255) {
                     colorI = 255;
                 } else if (px > ColorMap.colorRange[0]) {
-                    colorI = Math.round(((((float) i) / 255) - ColorMap.colorRange[0]) * (1f / colorRange) * 255f);
+                    colorI = clamp(0, 255, Math.round(((((float) i) / 255) - ColorMap.colorRange[0]) * (1f / colorRange) * 255f));
                 }
-                colorI = clamp(0, 255, colorI);
                 float r = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 0])) / 255;
                 float g = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 1])) / 255;
                 float b = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 2])) / 255;
