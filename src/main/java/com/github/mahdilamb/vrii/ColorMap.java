@@ -15,7 +15,7 @@ public class ColorMap extends Texture {
     final byte[] originalColors = new byte[256 * 3];
     static final byte[] colors = new byte[256 * 4];
     public static float[] opacityLevels = new float[]{0, 1};
-    public static float[] opacityNodes = new float[]{.7f, .95f};
+    public static float[] opacityNodes = new float[]{0f, 1f};
     public static float[] colorRange = new float[]{0f, 1f};
     static boolean hasChanges = true;
     Renderer renderer;

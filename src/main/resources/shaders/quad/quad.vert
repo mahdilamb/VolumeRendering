@@ -1,6 +1,6 @@
-#version 330 core
+#version 130
 
-layout(location = 0) in vec2 coordinates;
+in vec2 coordinates;
 
 
 void main() {

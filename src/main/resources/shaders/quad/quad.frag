@@ -1,4 +1,4 @@
-#version 330 core
+#version 130
 uniform vec2 viewSize;
 uniform mat4 iV;
 uniform mat4 iP;

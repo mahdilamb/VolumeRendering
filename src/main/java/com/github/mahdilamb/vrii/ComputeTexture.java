@@ -10,6 +10,8 @@ import static org.joml.Math.max;
 public class ComputeTexture extends Texture {
     final Renderer renderer;
     final int localSize; // should match the local_size_* in compute glsl
+    int lastWidth;
+    int lastHeight;
 
     public ComputeTexture(Renderer renderer, int localSize) {
         this.renderer = renderer;
@@ -19,13 +21,16 @@ public class ComputeTexture extends Texture {
     @Override
     public void init(GL2 gl) {
         super.init(gl);
+        lastHeight = renderer.getHeight();
+        lastWidth = renderer.getWidth();
+
         gl.glActiveTexture(GL_TEXTURE0);
         gl.glBindTexture(GL_TEXTURE_2D, getTextureID());
         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Renderer.getWidth(), Renderer.getHeight(), 0, GL_RGBA, GL_FLOAT,
+        gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, lastWidth, lastHeight, 0, GL_RGBA, GL_FLOAT,
                 null);
         gl.glBindImageTexture(0, getTextureID(), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
     }
@@ -47,9 +52,16 @@ public class ComputeTexture extends Texture {
 
     @Override
     public void render(GL2 gl) {
+        if (lastWidth != renderer.getWidth() || lastHeight != renderer.getHeight()) {
+            gl.glActiveTexture(GL_TEXTURE0);
+            gl.glBindTexture(GL_TEXTURE_2D, getTextureID());
+            lastHeight = renderer.getHeight();
+            lastWidth = renderer.getWidth();
+            gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, lastWidth, lastHeight, 0, GL_RGBA, GL_FLOAT, null);
+        }
         final GL3 gl3 = gl.getGL3();
-        final int worksizeX = nextPowerOfTwo(renderer.getWidth(), localSize);
-        final int worksizeY = nextPowerOfTwo(renderer.getHeight(), localSize);
+        final int worksizeX = nextPowerOfTwo(lastWidth, localSize);
+        final int worksizeY = nextPowerOfTwo(lastHeight, localSize);
 
         gl3.glDispatchCompute(worksizeX / localSize, worksizeY / localSize, 1);
         gl3.glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

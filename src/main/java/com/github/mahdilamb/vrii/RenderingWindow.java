@@ -51,13 +51,16 @@ public class RenderingWindow implements Runnable {
     final Renderer renderer;
     final JFrame frame = new JFrame();
 
+    @SuppressWarnings("unchecked")
     public RenderingWindow(Renderer renderer) throws IOException {
         this.renderer = renderer;
         frame.setLayout(new GridBagLayout());
         final GridBagConstraints fGBC = new GridBagConstraints();
         fGBC.gridy = 0;
+        fGBC.fill = GridBagConstraints.BOTH;
         fGBC.weightx = 1;
-        frame.add(renderer.getCanvas());
+        fGBC.weighty = 1;
+        frame.add(renderer.getCanvas(), fGBC);
         fGBC.weightx = 0;
         final JPanel controls = new JPanel();
         final GridBagConstraints cGBC = new GridBagConstraints();
@@ -140,21 +143,15 @@ public class RenderingWindow implements Runnable {
                              addItem(new ColorMap((RenderingWindow.this.renderer), file));
                          }
                          setRenderer(new ColorMapCellRenderer());
-                         addActionListener(e -> {
-                             (RenderingWindow.this.renderer).setColorMap((ColorMap) ((JComboBox<ColorMap>) e.getSource()).getSelectedItem());
-                         });
+                         addActionListener(e -> (RenderingWindow.this.renderer).setColorMap((ColorMap) ((JComboBox<ColorMap>) e.getSource()).getSelectedItem()));
                          setSelectedIndex(4);
                      }},
                 cGBC);
-        controls.add(new JSlider(0, 1000, 800) {{
-            addChangeListener(e -> {
-                renderer.setOpacityMin(((float) ((JSlider) e.getSource()).getValue()) / 1000);
-            });
+        controls.add(new JSlider(0, 1000, 0) {{
+            addChangeListener(e -> renderer.setOpacityMin(((float) ((JSlider) e.getSource()).getValue()) / 1000));
         }}, cGBC);
         controls.add(new JSlider(0, 1000, 1000) {{
-            addChangeListener(e -> {
-                renderer.setOpacityMax(((float) ((JSlider) e.getSource()).getValue()) / 1000);
-            });
+            addChangeListener(e -> renderer.setOpacityMax(((float) ((JSlider) e.getSource()).getValue()) / 1000));
         }}, cGBC);
         controls.add(
                 new JTextField("512") {{
