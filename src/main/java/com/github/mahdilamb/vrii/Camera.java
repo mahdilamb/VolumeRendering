@@ -1,4 +1,4 @@
-package com.github.mahdilamb.vrii.test.arcball;
+package com.github.mahdilamb.vrii;
 
 import org.joml.*;
 
@@ -19,7 +19,7 @@ class CameraView {
 }
 
 public class Camera {
-    final iRenderer renderer;
+    final Renderer renderer;
 
     final static float DEFAULT_ZOOM = -4f;
     final static Vector3f POSITION_ZERO = new Vector3f();
@@ -53,7 +53,7 @@ public class Camera {
     Matrix4f currentProjectionMatrix = null;
     Matrix4f currentViewProjectionMatrix = null;
 
-    public Camera(iRenderer renderer, CameraView preset) {
+    public Camera(Renderer renderer, CameraView preset) {
         this.renderer = renderer;
         setFromPreset(preset);
         if (renderer != null) {
@@ -65,12 +65,12 @@ public class Camera {
         this(null);
     }
 
-    public Camera(iRenderer renderer) {
+    public Camera(Renderer renderer) {
         this(renderer, initial);
     }
 
 
-    public Camera(iRenderer renderer, Vector3f eye, Vector3f viewCenter, Vector3f upDir) {
+    public Camera(Renderer renderer, Vector3f eye, Vector3f viewCenter, Vector3f upDir) {
         this(renderer, presetFromLookAt(eye, viewCenter, upDir));
     }
 
@@ -126,7 +126,7 @@ public class Camera {
     public Matrix4f getProjectionMatrix() {
         if (currentProjectionMatrix == null) {
             currentProjectionMatrix = new Matrix4f()
-                    .setPerspective(getFieldOfView(), ((float) renderer.getCanvasWidth()) / renderer.getCanvasHeight(), zNear, zFar);
+                    .setPerspective(getFieldOfView(), ((float) renderer.getWidth()) / renderer.getHeight(), zNear, zFar);
         }
         return new Matrix4f(currentProjectionMatrix);
     }
@@ -193,7 +193,7 @@ public class Camera {
     }
 
     public void rotate(MouseEvent e) {
-        final Vector2i dimensions = new Vector2i(renderer.getCanvasWidth(), renderer.getCanvasHeight());
+        final Vector2i dimensions = new Vector2i(renderer.getWidth(), renderer.getHeight());
         rotation.set(new Quaternionf(ndcToArcBall(boundlessScreenCoordToNDC(e, dimensions)))
 
                 .mul(ndcToArcBall(boundlessScreenCoordToNDC(prevMousePos, dimensions)))
@@ -239,8 +239,8 @@ public class Camera {
 
     private Vector2f screenCoordToNDC(Vector2f mousePos) {
 
-        return new Vector2f(mousePos.x() * 2.0f / renderer.getCanvasWidth() - 1.0f,
-                1.0f - 2.0f * mousePos.y() / renderer.getCanvasHeight());
+        return new Vector2f(mousePos.x() * 2.0f / renderer.getWidth() - 1.0f,
+                1.0f - 2.0f * mousePos.y() / renderer.getHeight());
     }
 
 

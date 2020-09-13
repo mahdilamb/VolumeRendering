@@ -18,9 +18,10 @@ public class ColorMap extends Texture {
     public static float[] opacityNodes = new float[]{.7f, .95f};
     public static float[] colorRange = new float[]{0f, 1f};
     static boolean hasChanges = true;
+    Renderer renderer;
 
-
-    public ColorMap(File source) throws IOException {
+    public ColorMap(Renderer renderer, File source) throws IOException {
+        this.renderer = renderer;
         final BufferedImage bufferedImage = ImageIO.read(source);
         for (int i = 0; i < 256; i++) {
             final int color = bufferedImage.getRGB(i, 0);
@@ -33,6 +34,14 @@ public class ColorMap extends Texture {
         }
         update(null);
 
+    }
+
+    public ColorMap(File source) throws IOException {
+        this(null, source);
+    }
+
+    public void setRenderer(Renderer renderer) {
+        this.renderer = renderer;
     }
 
     @Override
@@ -64,9 +73,9 @@ public class ColorMap extends Texture {
     }
 
 
-    static void update(GL2 gl) {
+    void update(GL2 gl) {
 
-        if (hasChanges && Renderer.colorMap != null) {
+        if (renderer != null && (hasChanges && renderer.colorMap != null)) {
             final float colorRange = ColorMap.colorRange[1] - ColorMap.colorRange[0];
             final float min = opacityLevels[0] * opacityLevels[0];
             final float max = opacityLevels[1] * opacityLevels[1];
@@ -89,9 +98,9 @@ public class ColorMap extends Texture {
                     colorI = Math.round(((((float) i) / 255) - ColorMap.colorRange[0]) * (1f / colorRange) * 255f);
                 }
 
-                float r = ((float) Byte.toUnsignedInt(Renderer.colorMap.originalColors[colorI * 3 + 0])) / 255;
-                float g = ((float) Byte.toUnsignedInt(Renderer.colorMap.originalColors[colorI * 3 + 1])) / 255;
-                float b = ((float) Byte.toUnsignedInt(Renderer.colorMap.originalColors[colorI * 3 + 2])) / 255;
+                float r = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 0])) / 255;
+                float g = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 1])) / 255;
+                float b = ((float) Byte.toUnsignedInt(renderer.colorMap.originalColors[colorI * 3 + 2])) / 255;
 
                 r = r * r * a;
                 g = g * g * a;

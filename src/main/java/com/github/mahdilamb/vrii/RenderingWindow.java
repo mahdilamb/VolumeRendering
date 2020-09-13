@@ -1,7 +1,4 @@
-package com.github.mahdilamb.vrii.test;
-
-import com.github.mahdilamb.vrii.*;
-import com.github.mahdilamb.vrii.Renderer;
+package com.github.mahdilamb.vrii;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
@@ -50,14 +47,17 @@ class ColorMapCellRenderer extends BasicComboBoxRenderer {
 
 }
 
-public class Test {
-    public static void main(String... args) throws IOException {
-        final JFrame frame = new JFrame();
+public class RenderingWindow implements Runnable {
+    final Renderer renderer;
+    final JFrame frame = new JFrame();
+
+    public RenderingWindow(Renderer renderer) throws IOException {
+        this.renderer = renderer;
         frame.setLayout(new GridBagLayout());
         final GridBagConstraints fGBC = new GridBagConstraints();
         fGBC.gridy = 0;
         fGBC.weightx = 1;
-        frame.add(Renderer.getCanvas());
+        frame.add(renderer.getCanvas());
         fGBC.weightx = 0;
         final JPanel controls = new JPanel();
         final GridBagConstraints cGBC = new GridBagConstraints();
@@ -124,7 +124,7 @@ public class Test {
                          ));
                          addActionListener(e -> {
                              try {
-                                 com.github.mahdilamb.vrii.Renderer.setVolume((MosaicVolumeSource) ((JComboBox<MosaicVolumeSource>) e.getSource()).getSelectedItem());
+                                 (RenderingWindow.this.renderer).setVolume((MosaicVolumeSource) ((JComboBox<MosaicVolumeSource>) e.getSource()).getSelectedItem());
                              } catch (IOException ioException) {
                                  ioException.printStackTrace();
                              }
@@ -137,23 +137,23 @@ public class Test {
                              if (file.isDirectory()) {
                                  continue;
                              }
-                             addItem(new ColorMap(file));
+                             addItem(new ColorMap((RenderingWindow.this.renderer), file));
                          }
                          setRenderer(new ColorMapCellRenderer());
                          addActionListener(e -> {
-                             com.github.mahdilamb.vrii.Renderer.setColorMap((ColorMap) ((JComboBox<ColorMap>) e.getSource()).getSelectedItem());
+                             (RenderingWindow.this.renderer).setColorMap((ColorMap) ((JComboBox<ColorMap>) e.getSource()).getSelectedItem());
                          });
                          setSelectedIndex(4);
                      }},
                 cGBC);
         controls.add(new JSlider(0, 1000, 800) {{
             addChangeListener(e -> {
-                com.github.mahdilamb.vrii.Renderer.setOpacityMin(((float) ((JSlider) e.getSource()).getValue()) / 1000);
+                renderer.setOpacityMin(((float) ((JSlider) e.getSource()).getValue()) / 1000);
             });
         }}, cGBC);
         controls.add(new JSlider(0, 1000, 1000) {{
             addChangeListener(e -> {
-                com.github.mahdilamb.vrii.Renderer.setOpacityMax(((float) ((JSlider) e.getSource()).getValue()) / 1000);
+                renderer.setOpacityMax(((float) ((JSlider) e.getSource()).getValue()) / 1000);
             });
         }}, cGBC);
         controls.add(
@@ -168,7 +168,7 @@ public class Test {
                         public void focusLost(FocusEvent e) {
                             try {
                                 final int value = Integer.parseInt(((JTextField) e.getSource()).getText());
-                                com.github.mahdilamb.vrii.Renderer.setSampleCount(value);
+                                renderer.setSampleCount(value);
                             } catch (Exception E) {
                                 E.printStackTrace();
                             }
@@ -177,7 +177,6 @@ public class Test {
                     });
                 }},
                 cGBC);
-        Renderer.setShader(Program.maxIntensity);
 
 
         frame.add(controls);
@@ -188,7 +187,7 @@ public class Test {
             }
 
             public void windowClosing(WindowEvent e) {
-                Renderer.getCanvas().destroy();
+                renderer.getCanvas().destroy();
                 System.exit(0);
             }
 
@@ -213,7 +212,14 @@ public class Test {
             }
         });
         frame.pack();
-        frame.setVisible(true);
 
     }
+
+
+    @Override
+    public void run() {
+        frame.setVisible(true);
+    }
+
+
 }

@@ -1,36 +1,19 @@
 package com.github.mahdilamb.vrii.test;
 
 import com.github.mahdilamb.vrii.*;
-import com.github.mahdilamb.vrii.test.arcball.Camera;
-import com.github.mahdilamb.vrii.test.arcball.Controls;
-import com.github.mahdilamb.vrii.test.arcball.iRenderer;
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.*;
-import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.IntBuffer;
 
 import static com.jogamp.opengl.GL.*;
 
-public class Quad extends JFrame implements iRenderer {
-    private final GLProfile profile = GLProfile.getDefault();
-    private final GLCapabilities capabilities = new GLCapabilities(profile);
-    private final GLCanvas canvas = new GLCanvas(capabilities);
-    final Camera camera = new Camera(this);
-    final Controls controls = new Controls(this);
-
-    private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\quad"));
-    final Volume volume = new Volume(new MosaicVolumeSource(
-            "Brain - Water",
-            new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
-            2,
-            176,
-            .7f
-    ));
-    final ColorMap colorMap = new ColorMap(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings\\colors1.png"));
+public class Quad extends Renderer {
+    final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\quad"));
     static {
         ColorMap.opacityNodes[0] = 0;
         ColorMap.opacityNodes[1] = 1;
@@ -45,20 +28,22 @@ public class Quad extends JFrame implements iRenderer {
             1.0f, -1.0f,
             1.0f, 1.0f
     };
-
-    {
-        canvas.setSize(800, 640);
-        canvas.addMouseListener(controls);
-        canvas.addMouseMotionListener(controls);
-        canvas.addMouseWheelListener(controls);
-        canvas.addGLEventListener(new GLEventListener() {
+    public Quad() throws IOException {
+        super(new Volume(new MosaicVolumeSource(
+                        "Brain - Water",
+                        new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
+                        2,
+                        176,
+                        .7f
+                )),
+                new ColorMap(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings\\colors1.png"))
+        );
+        colorMap.setRenderer(this);
+        getCanvas().addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {
                 final GL2 gl = drawable.getGL().getGL2();
-                // Enable depth test
-                //    gl.glEnable(GL_DEPTH_TEST);
-                // Accept fragment if it closer to the camera than the former one
-                //   gl.glDepthFunc(GL_LESS);
+
                 program.init(gl);
                 IntBuffer intBuffer = IntBuffer.allocate(1);
                 gl.glGenBuffers(1, intBuffer);
@@ -66,17 +51,17 @@ public class Quad extends JFrame implements iRenderer {
                 gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
                 gl.glBufferData(GL_ARRAY_BUFFER, vertexBufferData.length * Float.BYTES, Buffers.newDirectFloatBuffer(vertexBufferData), GL_STATIC_DRAW);
                 program.allocateUniform(gl, "iV", (gl2, loc) -> {
-                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
+                    gl2.glUniformMatrix4fv(loc, 1, false, getCamera().getViewMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
                 });
                 program.allocateUniform(gl, "iP", (gl2, loc) -> {
-                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
+                    gl2.glUniformMatrix4fv(loc, 1, false, getCamera().getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
                 });
 
                 program.allocateUniform(gl, "viewSize", (gl2, loc) -> {
-                    gl2.glUniform2f(loc, getCanvasWidth(), getCanvasHeight());
+                    gl2.glUniform2f(loc, getWidth(), getHeight());
                 });
                 program.allocateUniform(gl, "depthSampleCount", (gl2, loc) -> {
-                    gl2.glUniform1i(loc, 512);
+                    gl2.glUniform1i(loc, sampleCount);
                 });
                 program.allocateUniform(gl, "tex", (gl2, loc) -> {
                     gl2.glUniform1i(loc, 0);
@@ -95,9 +80,10 @@ public class Quad extends JFrame implements iRenderer {
                 final GL2 gl = drawable.getGL().getGL2();
                 gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 program.use(gl);
-                program.setUniforms(gl);
                 colorMap.render(gl);
                 volume.render(gl);
+                program.setUniforms(gl);
+
 
                 // 1st attribute buffer : vertices
                 gl.glEnableVertexAttribArray(0);
@@ -130,33 +116,10 @@ public class Quad extends JFrame implements iRenderer {
         });
     }
 
-    public Quad() throws IOException {
 
-        add(canvas);
-        pack();
-    }
-
-
-    public int getCanvasHeight() {
-        return canvas.getSurfaceHeight();
-    }
-
-    @Override
-    public void redraw() {
-        canvas.display();
-    }
-
-    @Override
-    public Camera getCamera() {
-        return camera;
-    }
-
-    public int getCanvasWidth() {
-        return canvas.getSurfaceWidth();
-    }
 
 
     public static void main(String... args) throws IOException {
-        new Quad().setVisible(true);
+        new RenderingWindow(new Quad()).run();
     }
 }

@@ -1,16 +1,11 @@
 package com.github.mahdilamb.vrii.test;
 
-import com.github.mahdilamb.vrii.ComputeTexture;
-import com.github.mahdilamb.vrii.Program;
-import com.github.mahdilamb.vrii.Texture;
-import com.github.mahdilamb.vrii.test.arcball.Camera;
-import com.github.mahdilamb.vrii.test.arcball.Controls;
-import com.github.mahdilamb.vrii.test.arcball.iRenderer;
+import com.github.mahdilamb.vrii.*;
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.*;
-import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLEventListener;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.IntBuffer;
@@ -19,12 +14,8 @@ import static com.jogamp.opengl.GL.*;
 import static com.jogamp.opengl.GL3ES3.*;
 
 
-public class ComputeShader extends JFrame implements iRenderer {
-    private final GLProfile profile = GLProfile.getDefault();
-    private final GLCapabilities capabilities = new GLCapabilities(profile);
-    private final GLCanvas canvas = new GLCanvas(capabilities);
-    final Camera camera = new Camera(this);
-    final Controls controls = new Controls(this);
+public class ComputeShader extends Renderer {
+
     private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\compute\\"));
     private final Program quadProgram = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\compute\\quad\\"));
 
@@ -42,12 +33,10 @@ public class ComputeShader extends JFrame implements iRenderer {
             1.0f, 1.0f
     };
 
-    {
-        canvas.setSize(800, 640);
-        canvas.addMouseListener(controls);
-        canvas.addMouseMotionListener(controls);
-        canvas.addMouseWheelListener(controls);
-        canvas.addGLEventListener(new GLEventListener() {
+    public ComputeShader() throws IOException {
+        super();
+        colorMap.setRenderer(this);
+        getCanvas().addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {
                 final GL2 gl = drawable.getGL().getGL2();
@@ -59,7 +48,13 @@ public class ComputeShader extends JFrame implements iRenderer {
                     gl2.glUniformMatrix4fv(loc, 1, false, camera.getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
                 });
                 program.allocateUniform(gl, "depthSampleCount", (gl2, loc) -> {
-                    gl2.glUniform1i(loc, 512);
+                    gl2.glUniform1i(loc, sampleCount);
+                });
+                program.allocateUniform(gl, "tex", (gl2, loc) -> {
+                    gl2.glUniform1i(loc, 0);
+                });
+                program.allocateUniform(gl, "colorMap", (gl2, loc) -> {
+                    gl2.glUniform1i(loc, 1);
                 });
                 final IntBuffer intBuffer = IntBuffer.allocate(1);
                 gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, intBuffer);
@@ -77,6 +72,8 @@ public class ComputeShader extends JFrame implements iRenderer {
                 gl.glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, intBuffer);
                 workGroupInvocations = intBuffer.get(0);
                 texture.init(gl);
+                volume.init(gl);
+                colorMap.init(gl);
                 quadProgram.init(gl);
                 gl.glGenBuffers(1, intBuffer);
                 vertexBuffer = intBuffer.get(0);
@@ -92,6 +89,8 @@ public class ComputeShader extends JFrame implements iRenderer {
                 gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 program.use(gl);
                 program.setUniforms(gl);
+                volume.render(gl);
+                colorMap.render(gl);
                 texture.render(gl);
                 quadProgram.use(gl);
 
@@ -129,35 +128,10 @@ public class ComputeShader extends JFrame implements iRenderer {
         });
     }
 
-    public ComputeShader() throws IOException {
-
-        add(canvas);
-        pack();
-    }
-
-    public int getCanvasHeight() {
-        return canvas.getSurfaceHeight();
-    }
-
-    @Override
-    public void redraw() {
-        canvas.display();
-    }
-
-    @Override
-    public Camera getCamera() {
-        return camera;
-    }
-
-    public int getCanvasWidth() {
-        return canvas.getSurfaceWidth();
-    }
-
 
     public static void main(String... args) throws IOException {
-        final ComputeShader cube = new ComputeShader();
+        new RenderingWindow(new ComputeShader()).run();
 
-        cube.setVisible(true);
 
     }
 }
