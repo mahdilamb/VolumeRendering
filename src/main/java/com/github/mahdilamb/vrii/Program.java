@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import static com.jogamp.opengl.GL2ES2.*;
 import static com.jogamp.opengl.GL3ES3.GL_COMPUTE_SHADER;
+import static com.jogamp.opengl.GL3ES3.GL_GEOMETRY_SHADER;
 
 public class Program {
     static final List<Program> programs = new Vector<>();
@@ -71,7 +72,6 @@ public class Program {
             if (tmpFile.isDirectory() || !tmpFile.getName().startsWith(mask)) {
                 continue;
             }
-            System.out.println(tmpFile);
             switch (tmpFile.getName().substring(tmpFile.getName().lastIndexOf(".") + 1)) {
                 case "frag":
                 case "fs":
@@ -85,8 +85,13 @@ public class Program {
                 case "compute":
                     shaderCode.put(GL_COMPUTE_SHADER, Files.readAllLines(Paths.get(tmpFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
                     break;
+                case "gs":
+                case "geom":
+                    shaderCode.put(GL_GEOMETRY_SHADER, Files.readAllLines(Paths.get(tmpFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
+                    break;
+                default:
+                    throw new UnsupportedOperationException(String.format("Program cannot read type of shader from file extension of %s ", tmpFile));
             }
-
         }
     }
 
