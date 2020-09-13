@@ -145,8 +145,7 @@ public class Camera {
                         getViewMatrix()
                 )
                         .invert());
-
-
+        //invView.div(invView.w);
         return new Vector3f(invView.x(), invView.y(), invView.z());
     }
 

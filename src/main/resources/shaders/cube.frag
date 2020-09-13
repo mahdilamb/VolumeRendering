@@ -57,7 +57,6 @@ out float tmin, out float tmax
 }
 
 void main(){
-    vec2 texCoord = ((gl_FragCoord.xy/viewSize)*2)-1;
 
     vec3 rayDirection;
     rayDirection.xy = 2.0 * gl_FragCoord.xy / viewSize - 1.0;

@@ -13,38 +13,60 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <source>7</source>
+                    <target>7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
                     <source>8</source>
                     <target>8</target>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
     <dependencies>
-        <dependency>
-            <groupId>org.jogamp.gluegen</groupId>
-            <artifactId>gluegen-rt-main</artifactId>
-            <version>2.3.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jogamp.jogl</groupId>
-            <artifactId>jogl-all-main</artifactId>
-            <version>2.3.2</version>
-        </dependency>
+
 
         <dependency>
-            <groupId>org.joml</groupId>
+            <groupId>repository.org.joml</groupId>
             <artifactId>joml</artifactId>
             <version>1.9.25</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.joml</groupId>
+            <groupId>repository.org.jogamp.jogl</groupId>
+            <artifactId>jogl-all</artifactId>
+            <version>2.3.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>repository.org.jogamp.gluegen</groupId>
+            <artifactId>gluegen-rt</artifactId>
+            <version>2.3.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>repository.org.jogamp.jogl</groupId>
+            <artifactId>jogl-all</artifactId>
+            <version>2.3.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>repository.org.jogamp.gluegen</groupId>
+            <artifactId>gluegen-rt</artifactId>
+            <version>2.3.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>repository.org.joml</groupId>
             <artifactId>joml</artifactId>
             <version>1.9.25</version>
             <scope>compile</scope>
         </dependency>
-
-
     </dependencies>
 
 

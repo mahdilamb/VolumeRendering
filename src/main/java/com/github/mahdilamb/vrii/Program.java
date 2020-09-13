@@ -16,17 +16,17 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static com.jogamp.opengl.GL2ES2.*;
+import static com.jogamp.opengl.GL3ES3.GL_COMPUTE_SHADER;
 
 public class Program {
     static final List<Program> programs = new Vector<>();
     private final String name;
 
     Integer programId = null;
-    private final String vertexShader;
-    private final String fragmentShader;
+    private final Map<Integer, String> shaderCode = new HashMap<>();
+    private final Map<Integer, Integer> shaderIds = new HashMap<>();
 
-    int vertexShaderId;
-    int fragmentShaderId;
+
     static final File vertexShaderFile = new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\vertex.vert");
     public static Program specular;
     public static Program basic;
@@ -62,18 +62,39 @@ public class Program {
     }
 
     public Program(File file) throws IOException {
-        final File directory = new File(file.getParent());
-        final String mask = file.getName();
         this.name = null;
-        this.vertexShader = Files.readAllLines(Paths.get(directory.getPath(), mask + ".vert")).stream().collect(Collectors.joining("\n"));
-        this.fragmentShader = Files.readAllLines(Paths.get(directory.getPath(), mask + ".frag")).stream().collect(Collectors.joining("\n"));
 
+        final File directory = file.isDirectory() ? file : new File(file.getParent());
+        final String mask = file.isDirectory() ? "" : file.getName();
+        for (final File tmpFile : directory.listFiles()) {
+
+            if (tmpFile.isDirectory() || !tmpFile.getName().startsWith(mask)) {
+                continue;
+            }
+            System.out.println(tmpFile);
+            switch (tmpFile.getName().substring(tmpFile.getName().lastIndexOf(".") + 1)) {
+                case "frag":
+                case "fs":
+                    shaderCode.put(GL_FRAGMENT_SHADER, Files.readAllLines(Paths.get(tmpFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
+                    break;
+                case "vert":
+                case "vs":
+                    shaderCode.put(GL_VERTEX_SHADER, Files.readAllLines(Paths.get(tmpFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
+                    break;
+                case "cs":
+                case "compute":
+                    shaderCode.put(GL_COMPUTE_SHADER, Files.readAllLines(Paths.get(tmpFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
+                    break;
+            }
+
+        }
     }
 
     Program(String name, File vertexShaderFile, File fragmentShaderFile) throws IOException {
         this.name = name;
-        this.vertexShader = Files.readAllLines(Paths.get(vertexShaderFile.getAbsolutePath())).stream().collect(Collectors.joining("\n"));
-        this.fragmentShader = Files.readAllLines(Paths.get(fragmentShaderFile.getAbsolutePath())).stream().collect(Collectors.joining("\n"));
+        shaderCode.put(GL_VERTEX_SHADER, Files.readAllLines(Paths.get(vertexShaderFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
+        shaderCode.put(GL_FRAGMENT_SHADER, Files.readAllLines(Paths.get(fragmentShaderFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
+
 
     }
 
@@ -83,28 +104,29 @@ public class Program {
         }
         final ByteBuffer infoLog = ByteBuffer.allocate(512);
         final IntBuffer success = IntBuffer.allocate(1);
-
-        vertexShaderId = gl.glCreateShader(GL_VERTEX_SHADER);
-        gl.glShaderSource(vertexShaderId, 1, new String[]{vertexShader}, null);
-        gl.glCompileShader(vertexShaderId);
-        gl.glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, success);
-        if (success.get(0) != 1) {
-            gl.glGetShaderInfoLog(vertexShaderId, 512, null, infoLog);
-            System.out.println(new String(infoLog.array()));
+        for (final Map.Entry<Integer, String> shader : shaderCode.entrySet()) {
+            final int shaderId = gl.glCreateShader(shader.getKey());
+            shaderIds.put(shader.getKey(), shaderId);
+            gl.glShaderSource(shaderId, 1, new String[]{shader.getValue()}, null);
+            gl.glCompileShader(shaderId);
+            gl.glGetShaderiv(shaderId, GL_COMPILE_STATUS, success);
+            if (success.get(0) != 1) {
+                gl.glGetShaderInfoLog(shaderId, 512, null, infoLog);
+                System.out.println(new String(infoLog.array()));
+            }
         }
 
-        fragmentShaderId = gl.glCreateShader(GL_FRAGMENT_SHADER);
-        gl.glShaderSource(fragmentShaderId, 1, new String[]{fragmentShader}, null);
-        gl.glCompileShader(fragmentShaderId);
-        gl.glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, success);
-        if (success.get(0) != 1) {
-            gl.glGetShaderInfoLog(fragmentShaderId, 512, null, infoLog);
-            System.out.println(new String(infoLog.array()));
-        }
 
         programId = gl.glCreateProgram();
-        gl.glAttachShader(programId, vertexShaderId);
-        gl.glAttachShader(programId, fragmentShaderId);
+        for (final Map.Entry<Integer, Integer> shaderId : shaderIds.entrySet()) {
+
+            gl.glAttachShader(programId, shaderId.getValue());
+        }
+        programs.add(this);
+
+        if (shaderIds.size() == 0) {
+            return;
+        }
         gl.glLinkProgram(programId);
 
         gl.glGetProgramiv(programId, GL_LINK_STATUS, success);
@@ -112,27 +134,23 @@ public class Program {
             gl.glGetProgramInfoLog(programId, 512, null, infoLog);
             System.out.println(new String(infoLog.array()));
         }
-        gl.glDetachShader(programId,vertexShaderId);
-        gl.glDetachShader(programId,fragmentShaderId);
-        gl.glDeleteShader(vertexShaderId);
-        gl.glDeleteShader(fragmentShaderId);
-        programs.add(this);
+        for (final Map.Entry<Integer, Integer> shaderId : shaderIds.entrySet()) {
+
+            gl.glDetachShader(programId, shaderId.getValue());
+            gl.glDeleteShader(shaderId.getValue());
+        }
 
 
     }
 
-    public void updateAttributePointers(GL2 gl) {
-
-
-
-    }
 
     public void destroy(GL2 gl) {
         if (programId != null) {
-            gl.glDetachShader(programId, vertexShaderId);
-            gl.glDetachShader(programId, fragmentShaderId);
-            gl.glDeleteShader(vertexShaderId);
-            gl.glDeleteShader(fragmentShaderId);
+            for (final Map.Entry<Integer, Integer> shaderId : shaderIds.entrySet()) {
+
+                gl.glDetachShader(programId, shaderId.getValue());
+                gl.glDeleteShader(shaderId.getValue());
+            }
             gl.glDeleteProgram(programId);
         }
     }

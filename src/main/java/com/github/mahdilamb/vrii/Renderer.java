@@ -71,7 +71,6 @@ public class Renderer {
 
                 volume.init(gl);
 
-                program.updateAttributePointers(gl);
             }
 
             public void display(GLAutoDrawable drawable) {

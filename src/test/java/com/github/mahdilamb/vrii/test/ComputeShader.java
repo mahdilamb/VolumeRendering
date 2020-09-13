@@ -3,6 +3,7 @@ package com.github.mahdilamb.vrii.test;
 import com.github.mahdilamb.vrii.Program;
 import com.github.mahdilamb.vrii.Texture;
 import com.github.mahdilamb.vrii.test.arcball.Camera;
+import com.github.mahdilamb.vrii.test.arcball.Controls;
 import com.github.mahdilamb.vrii.test.arcball.iRenderer;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.*;
@@ -15,34 +16,68 @@ import java.io.IOException;
 import java.nio.IntBuffer;
 
 import static com.jogamp.opengl.GL.*;
-import static org.joml.Math.toRadians;
 
-public class Quad extends JFrame implements iRenderer {
+
+public class ComputeShader extends JFrame implements iRenderer {
     private final GLProfile profile = GLProfile.getDefault();
     private final GLCapabilities capabilities = new GLCapabilities(profile);
     private final GLCanvas canvas = new GLCanvas(capabilities);
     final Camera camera = new Camera(this);
-    private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\test"));
+    final Controls controls = new Controls(this);
+    private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\compute\\"));
     int vertexBuffer;
     final float[] vertexBufferData = new float[]{
-            -1.0f, -1.0f,
-            1.0f, -1.0f,
-            -1.0f, 1.0f,
-            -1.0f, 1.0f,
-            1.0f, -1.0f,
-            1.0f, 1.0f
+            -1.0f, -1.0f, -1.0f, // triangle 1 : begin
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f, // triangle 1 : end
+            1.0f, 1.0f, -1.0f, // triangle 1 : begin
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f, // triangle 1 : end
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f
     };
 
     {
         canvas.setSize(800, 640);
+        canvas.addMouseListener(controls);
+        canvas.addMouseMotionListener(controls);
+        canvas.addMouseWheelListener(controls);
         canvas.addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {
                 final GL2 gl = drawable.getGL().getGL2();
                 // Enable depth test
-            //    gl.glEnable(GL_DEPTH_TEST);
+                gl.glEnable(GL_DEPTH_TEST);
                 // Accept fragment if it closer to the camera than the former one
-             //   gl.glDepthFunc(GL_LESS);
+                gl.glDepthFunc(GL_LESS);
                 program.init(gl);
                 IntBuffer intBuffer = IntBuffer.allocate(1);
                 gl.glGenBuffers(1, intBuffer);
@@ -52,15 +87,25 @@ public class Quad extends JFrame implements iRenderer {
                 program.allocateUniform(gl, "MVP", (gl2, loc) -> {
                     gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewProjectionMatrix().get(Buffers.newDirectFloatBuffer(16)));
                 });
-                program.allocateUniform(gl, "iMVP", (gl2, loc) -> {
-                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
+                program.allocateUniform(gl, "iV", (gl2, loc) -> {
+                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
                 });
+                program.allocateUniform(gl, "MV", (gl2, loc) -> {
+                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().get(Buffers.newDirectFloatBuffer(16)));
+                });
+                program.allocateUniform(gl, "iP", (gl2, loc) -> {
+                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
+                });
+
                 program.allocateUniform(gl, "rayOrigin", (gl2, loc) -> {
                     final Vector3f rayOrigin = camera.getRayOrigin();
                     gl2.glUniform3f(loc, rayOrigin.x(), rayOrigin.y(), rayOrigin.z());
                 });
                 program.allocateUniform(gl, "viewSize", (gl2, loc) -> {
-                    gl2.glUniform2f(loc, getCanvasWidth(),getCanvasHeight());
+                    gl2.glUniform2f(loc, getCanvasWidth(), getCanvasHeight());
+                });
+                program.allocateUniform(gl, "focalLength", (gl2, loc) -> {
+                    gl2.glUniform1f(loc, camera.getFocalLength());
                 });
             }
 
@@ -77,14 +122,14 @@ public class Quad extends JFrame implements iRenderer {
                 gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
                 gl.glVertexAttribPointer(
                         0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                        2,                  // size
+                        3,                  // size
                         GL_FLOAT,           // type
                         false,           // normalized?
                         0,                  // stride
                         0            // array buffer offset
                 );
                 // Draw the triangle !
-                gl.glDrawArrays(GL_TRIANGLES, 0, vertexBufferData.length / 2); // Starting from vertex 0; 3 vertices total -> 1 triangle
+                gl.glDrawArrays(GL_TRIANGLES, 0, vertexBufferData.length / 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
                 gl.glDisableVertexAttribArray(0);
             }
 
@@ -103,13 +148,11 @@ public class Quad extends JFrame implements iRenderer {
         });
     }
 
-    public Quad() throws IOException {
+    public ComputeShader() throws IOException {
 
         add(canvas);
         pack();
     }
-
-
 
     public int getCanvasHeight() {
         return canvas.getSurfaceHeight();
@@ -130,7 +173,11 @@ public class Quad extends JFrame implements iRenderer {
     }
 
 
+
     public static void main(String... args) throws IOException {
-        new Quad().setVisible(true);
+        final ComputeShader cube = new ComputeShader();
+
+        cube.setVisible(true);
+
     }
 }
