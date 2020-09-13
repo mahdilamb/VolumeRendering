@@ -24,6 +24,8 @@ public class ComputeShader extends Renderer {
     final int[] workGroupSize = new int[3];
     int workGroupInvocations;
     int vertexBuffer;
+    long lastTime = System.nanoTime();
+
     final float[] vertexBufferData = new float[]{
             -1.0f, -1.0f,
             1.0f, -1.0f,
@@ -40,6 +42,10 @@ public class ComputeShader extends Renderer {
             @Override
             public void init(GLAutoDrawable drawable) {
                 final GL2 gl = drawable.getGL().getGL2();
+                gl.glClearColor(0, 0, 0.4f, 1);
+
+                gl.glEnable(GL_BLEND);
+                gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 program.init(gl);
                 program.allocateUniform(gl, "iV", (gl2, loc) -> {
                     gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
@@ -85,6 +91,7 @@ public class ComputeShader extends Renderer {
 
             @Override
             public void display(GLAutoDrawable drawable) {
+
                 final GL2 gl = drawable.getGL().getGL2();
                 gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 program.use(gl);
@@ -109,7 +116,9 @@ public class ComputeShader extends Renderer {
                 gl.glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
                 gl.glDrawArrays(GL_TRIANGLES, 0, vertexBufferData.length / 2);
                 gl.glDisableVertexAttribArray(0);
-
+                final long thisTime = System.nanoTime();
+                System.out.println(1 / (((float) thisTime - lastTime) / 1_000_000_000));
+                lastTime = thisTime;
             }
 
             @Override

@@ -14,11 +14,13 @@ import static com.jogamp.opengl.GL.*;
 
 public class Quad extends Renderer {
     final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\quad"));
+
     static {
         ColorMap.opacityNodes[0] = 0;
         ColorMap.opacityNodes[1] = 1;
     }
 
+    long lastTime = System.nanoTime();
     int vertexBuffer;
     final float[] vertexBufferData = new float[]{
             -1.0f, -1.0f,
@@ -28,6 +30,7 @@ public class Quad extends Renderer {
             1.0f, -1.0f,
             1.0f, 1.0f
     };
+
     public Quad() throws IOException {
         super(new Volume(new MosaicVolumeSource(
                         "Brain - Water",
@@ -43,7 +46,10 @@ public class Quad extends Renderer {
             @Override
             public void init(GLAutoDrawable drawable) {
                 final GL2 gl = drawable.getGL().getGL2();
+                gl.glClearColor(0, 0, 0.4f, 1);
 
+                gl.glEnable(GL_BLEND);
+                gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 program.init(gl);
                 IntBuffer intBuffer = IntBuffer.allocate(1);
                 gl.glGenBuffers(1, intBuffer);
@@ -99,6 +105,9 @@ public class Quad extends Renderer {
                 // Draw the triangle !
                 gl.glDrawArrays(GL_TRIANGLES, 0, vertexBufferData.length / 2); // Starting from vertex 0; 3 vertices total -> 1 triangle
                 gl.glDisableVertexAttribArray(0);
+                final long thisTime = System.nanoTime();
+                System.out.println(1 / (((float) thisTime - lastTime) / 1_000_000_000));
+                lastTime = thisTime;
             }
 
             @Override
@@ -115,8 +124,6 @@ public class Quad extends Renderer {
             }
         });
     }
-
-
 
 
     public static void main(String... args) throws IOException {
