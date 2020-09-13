@@ -1,16 +1,15 @@
 package com.github.mahdilamb.vrii;
 
 
-import com.jogamp.opengl.GLAutoDrawable;
-import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLEventListener;
-import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.IntBuffer;
 
 import static com.jogamp.opengl.GL.*;
+import static com.jogamp.opengl.GL3ES3.*;
 
 public abstract class Renderer {
 
@@ -22,7 +21,11 @@ public abstract class Renderer {
     protected Volume volume;
     protected ColorMap colorMap;
     public static int sampleCount = 512;
+    public final int[] workGroupCount = new int[3];
+    public final int[] maxWorkGroupSize = new int[3];
+    public final int[] workGroupSize = new int[3];
 
+    public int workGroupInvocations;
     public Renderer(final Volume volume, final ColorMap colorMap) {
 
         this.colorMap = colorMap;
@@ -36,11 +39,32 @@ public abstract class Renderer {
         canvas.addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {
-                System.out.println(drawable.getGL().glGetString(GL_RENDERER));
-                System.out.println(drawable.getGL().glGetString(GL_VENDOR));
-                System.out.println(drawable.getGL().glGetString(GL_VERSION));
-                System.out.println(drawable.getGL().glGetString(GL_EXTENSIONS));
-
+                final GL2 gl = drawable.getGL().getGL2();
+                System.out.println(gl.glGetString(GL_RENDERER));
+                System.out.println(gl.glGetString(GL_VENDOR));
+                System.out.println(gl.glGetString(GL_VERSION));
+                System.out.println(gl.glGetString(GL_EXTENSIONS));
+                final IntBuffer intBuffer = IntBuffer.allocate(1);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, intBuffer);
+                workGroupCount[0] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, intBuffer);
+                workGroupCount[1] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, intBuffer);
+                workGroupCount[2] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, intBuffer);
+                maxWorkGroupSize[0] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, intBuffer);
+                maxWorkGroupSize[1] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, intBuffer);
+                maxWorkGroupSize[2] = intBuffer.get(0);
+                gl.glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, intBuffer);
+                workGroupInvocations = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_COMPUTE_WORK_GROUP_SIZE, 0, intBuffer);
+                workGroupSize[0] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_COMPUTE_WORK_GROUP_SIZE, 1, intBuffer);
+                workGroupSize[1] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_COMPUTE_WORK_GROUP_SIZE, 2, intBuffer);
+                workGroupSize[2] = intBuffer.get(0);
             }
 
             @Override

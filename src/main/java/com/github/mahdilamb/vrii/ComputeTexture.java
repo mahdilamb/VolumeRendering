@@ -5,8 +5,17 @@ import com.jogamp.opengl.GL3;
 
 import static com.jogamp.opengl.GL.*;
 import static com.jogamp.opengl.GL2ES3.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+import static org.joml.Math.max;
 
 public class ComputeTexture extends Texture {
+    final Renderer renderer;
+    final int localSize; // should match the local_size_* in compute glsl
+
+    public ComputeTexture(Renderer renderer, int localSize) {
+        this.renderer = renderer;
+        this.localSize = localSize;
+    }
+
     @Override
     public void init(GL2 gl) {
         super.init(gl);
@@ -21,10 +30,28 @@ public class ComputeTexture extends Texture {
         gl.glBindImageTexture(0, getTextureID(), 0, false, 0, GL_WRITE_ONLY, GL_RGBA32F);
     }
 
+    static int nextPowerOfTwo(int x) {
+        x--;
+        x |= x >> 1; // handle 2 bit numbers
+        x |= x >> 2; // handle 4 bit numbers
+        x |= x >> 4; // handle 8 bit numbers
+        x |= x >> 8; // handle 16 bit numbers
+        x |= x >> 16; // handle 32 bit numbers
+        x++;
+        return x;
+    }
+
+    static int nextPowerOfTwo(int x, int minVal) {
+        return max(minVal, nextPowerOfTwo(x));
+    }
+
     @Override
     public void render(GL2 gl) {
         final GL3 gl3 = gl.getGL3();
-        gl3.glDispatchCompute(Renderer.getWidth(), Renderer.getHeight(), 1);
+        final int worksizeX = nextPowerOfTwo(renderer.getWidth(), localSize);
+        final int worksizeY = nextPowerOfTwo(renderer.getHeight(), localSize);
+
+        gl3.glDispatchCompute(worksizeX / localSize, worksizeY / localSize, 1);
         gl3.glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
     }
