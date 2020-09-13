@@ -100,7 +100,6 @@ public class Program {
         shaderCode.put(GL_VERTEX_SHADER, Files.readAllLines(Paths.get(vertexShaderFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
         shaderCode.put(GL_FRAGMENT_SHADER, Files.readAllLines(Paths.get(fragmentShaderFile.getAbsolutePath())).stream().collect(Collectors.joining("\n")));
 
-
     }
 
     public void init(GL2 gl) {

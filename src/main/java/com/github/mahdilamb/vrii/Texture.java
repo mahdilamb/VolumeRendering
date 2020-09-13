@@ -3,7 +3,6 @@ package com.github.mahdilamb.vrii;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GL2;
 
-import java.nio.Buffer;
 import java.nio.IntBuffer;
 import java.util.List;
 import java.util.Vector;
@@ -33,7 +32,7 @@ public abstract class Texture {
         }
     }
 
-    public int getTextureID(){
+    public int getTextureID() {
         return id;
     }
 }

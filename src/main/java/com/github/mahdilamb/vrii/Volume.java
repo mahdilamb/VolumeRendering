@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 import static com.jogamp.opengl.GL.*;
 import static com.jogamp.opengl.GL2ES2.GL_TEXTURE_3D;
@@ -30,16 +29,6 @@ public class Volume extends Texture {
     Byte min = null;
     Byte max = null;
 
-    static float[] vertices = new float[]{
-            -1.0f, -1.0f,
-            1.0f, -1.0f,
-            -1.0f, 1.0f,
-            -1.0f, 1.0f,
-            1.0f, -1.0f,
-            1.0f, 1.0f
-    };
-    static FloatBuffer verticesBuffer = Buffers.newDirectFloatBuffer(vertices);
-    Integer verticesVB0;
     boolean hasChanges = true;
 
     //from raw 8 bit image
@@ -61,7 +50,7 @@ public class Volume extends Texture {
         }
 
         buffer = Buffers.newDirectByteBuffer(data);
-        scale =  new float[]{1, 1, 1};
+        scale = new float[]{1, 1, 1};
     }
 
     public Volume(MosaicVolumeSource source) throws IOException {
@@ -86,7 +75,7 @@ public class Volume extends Texture {
                 }
             }
         }
-         scale = new float[]{1, 1, source.getZScale()};
+        scale = new float[]{1, 1, source.getZScale()};
         buffer = Buffers.newDirectByteBuffer(data);
 
     }
@@ -128,13 +117,7 @@ public class Volume extends Texture {
     public void init(GL2 gl) {
 
         super.init(gl);
-        if(verticesVB0 == null){
-            IntBuffer intBuffer = IntBuffer.allocate(1);
-            gl.glGenBuffers(1, intBuffer);
-            verticesVB0 = intBuffer.get(0);
-            gl.glBindBuffer(GL_ARRAY_BUFFER, verticesVB0);
-            gl.glBufferData(GL_ARRAY_BUFFER, vertices.length * Float.BYTES, verticesBuffer.rewind(), GL_STATIC_DRAW);
-        }
+
 
         gl.glActiveTexture(GL_TEXTURE0);
         gl.glBindTexture(GL_TEXTURE_3D, getTextureID());
@@ -161,27 +144,14 @@ public class Volume extends Texture {
 
     public void render(GL2 gl) {
         update(gl);
-        // 1st attribute buffer : vertices
-        gl.glEnableVertexAttribArray(0);
-        gl.glBindBuffer(GL_ARRAY_BUFFER, verticesVB0);
-        gl.glVertexAttribPointer(
-                0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                2,                  // size
-                GL_FLOAT,           // type
-                false,           // normalized?
-                0,                  // stride
-                0            // array buffer offset
-        );
-        // Draw the triangle !
-        gl.glDrawArrays(GL_TRIANGLES, 0,  6); // Starting from vertex 0; 3 vertices total -> 1 triangle
-        gl.glDisableVertexAttribArray(0);
+
     }
 
     private void update(GL2 gl) {
         if (gl == null || hasChanges == false) {
             return;
         }
-        if(getTextureID() == 0){
+        if (getTextureID() == 0) {
             init(gl);
         }
         gl.glActiveTexture(GL_TEXTURE0);
@@ -203,11 +173,7 @@ public class Volume extends Texture {
 
     }
 
-    @Override
-    public void destroy(GL2 gl) {
-        gl.glDeleteBuffers(1, Buffers.newDirectIntBuffer(new int[]{verticesVB0}));
-        super.destroy(gl);
-    }
+
 
     public float[] getScale() {
         return scale;
@@ -217,6 +183,4 @@ public class Volume extends Texture {
 
         return scale[dim];
     }
-
-
 }

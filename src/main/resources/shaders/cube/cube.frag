@@ -1,10 +1,15 @@
-#version 430
-layout(local_size_x = 1, local_size_y = 1) in;
-layout(rgba32f, binding = 0) uniform image2D img_output;
-
+#version 330 core
+uniform vec2 viewSize;
 uniform mat4 iV;
 uniform mat4 iP;
-uniform float depthSampleCount;
+
+uniform sampler3D tex;
+uniform sampler2D colorMap;
+uniform int depthSampleCount;
+uniform float zScale;
+
+out vec4 color;
+
 
 vec3 aabb[2] = vec3[2](
 vec3(-1.0, -1.0, -1.0),
@@ -63,31 +68,41 @@ out float tmin, out float tmax
 }
 
 
-void main() {
-
-    ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
-
-    ivec2 dims = imageSize(img_output);
-    vec2 uv;
-    uv.x = (float(pixel_coords.x * 2 - dims.x) / dims.x);
-    uv.y = (float(pixel_coords.y * 2 - dims.y) / dims.y);
-
-    vec4 pixel = vec4(0, 0, 0, 1.0);
-    Ray ray = CreateCameraRay(uv);
+void main(){
+    vec2 vUV = 2.0 * gl_FragCoord.xy / viewSize - 1.0;
+    Ray ray = CreateCameraRay(vUV);
 
     float tmin = 0.0;
     float tmax = 0.0;
     intersect(ray, aabb, tmin, tmax);
 
-    if (tmax >= tmin){
+    vec3 start = ray.origin.xyz + tmin*ray.direction.xyz;
+    vec3 end = ray.origin.xyz + tmax*ray.direction.xyz;
+    start = (start+1)/2;
+    end = (end+1)/2;
+    float len = distance(end, start);
+    int sampleCount = int(float(depthSampleCount)*len);
+    vec3 increment = (end-start)/float(sampleCount);
+    float incLength = length(increment);
+    increment = normalize(increment);
+    vec3 pos = start;
 
-        vec3 start = ray.origin.xyz + tmin*ray.direction.xyz;
-        vec3 end = ray.origin.xyz + tmax*ray.direction.xyz;
-        start = (start+1)/2;
-        end = (end+1)/2;
-        float len = distance(end, start);
-        pixel.rgb = vec3(len);
+    float px = 0.0;
+    vec4 pxColor = vec4(0.0, 0.0, 0.0, 0.0);
+    vec3 texCo = vec3(0.0, 0.0, 0.0);
+
+    float last = 0.0;
+    for(int count = 0; count < sampleCount; count++){
+
+        texCo = mix(start, end, float(count)/float(sampleCount));// - originOffset;
+
+        px = max(px, texture(tex, texCo).r);
+
+        if(px >= 0.99){
+            break;
+        }
     }
+    pxColor = texture(colorMap, vec2(px, 0.0));
 
-    imageStore(img_output, pixel_coords, pixel);
+    color =pxColor;
 }

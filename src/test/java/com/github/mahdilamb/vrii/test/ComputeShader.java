@@ -1,5 +1,6 @@
 package com.github.mahdilamb.vrii.test;
 
+import com.github.mahdilamb.vrii.ComputeTexture;
 import com.github.mahdilamb.vrii.Program;
 import com.github.mahdilamb.vrii.Texture;
 import com.github.mahdilamb.vrii.test.arcball.Camera;
@@ -8,7 +9,6 @@ import com.github.mahdilamb.vrii.test.arcball.iRenderer;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
-import org.joml.Vector3f;
 
 import javax.swing.*;
 import java.io.File;
@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.IntBuffer;
 
 import static com.jogamp.opengl.GL.*;
+import static com.jogamp.opengl.GL3ES3.*;
 
 
 public class ComputeShader extends JFrame implements iRenderer {
@@ -25,44 +26,20 @@ public class ComputeShader extends JFrame implements iRenderer {
     final Camera camera = new Camera(this);
     final Controls controls = new Controls(this);
     private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\compute\\"));
+    private final Program quadProgram = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\compute\\quad\\"));
+
+    private final ComputeTexture texture = new ComputeTexture();
+    final int[] workGroupCount = new int[3];
+    final int[] workGroupSize = new int[3];
+    int workGroupInvocations;
     int vertexBuffer;
     final float[] vertexBufferData = new float[]{
-            -1.0f, -1.0f, -1.0f, // triangle 1 : begin
-            -1.0f, -1.0f, 1.0f,
-            -1.0f, 1.0f, 1.0f, // triangle 1 : end
-            1.0f, 1.0f, -1.0f, // triangle 1 : begin
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, 1.0f, -1.0f, // triangle 1 : end
-            1.0f, -1.0f, 1.0f,
-            -1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, 1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, 1.0f, 1.0f,
-            -1.0f, 1.0f, -1.0f,
-            1.0f, -1.0f, 1.0f,
-            -1.0f, -1.0f, 1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, 1.0f, 1.0f,
-            -1.0f, -1.0f, 1.0f,
-            1.0f, -1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, 1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, 1.0f, 1.0f,
-            1.0f, -1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f,
-            1.0f, 1.0f, -1.0f,
-            -1.0f, 1.0f, -1.0f,
-            1.0f, 1.0f, 1.0f,
-            -1.0f, 1.0f, -1.0f,
-            -1.0f, 1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f,
-            -1.0f, 1.0f, 1.0f,
-            1.0f, -1.0f, 1.0f
+            -1.0f, -1.0f,
+            1.0f, -1.0f,
+            -1.0f, 1.0f,
+            -1.0f, 1.0f,
+            1.0f, -1.0f,
+            1.0f, 1.0f
     };
 
     {
@@ -74,39 +51,38 @@ public class ComputeShader extends JFrame implements iRenderer {
             @Override
             public void init(GLAutoDrawable drawable) {
                 final GL2 gl = drawable.getGL().getGL2();
-                // Enable depth test
-                gl.glEnable(GL_DEPTH_TEST);
-                // Accept fragment if it closer to the camera than the former one
-                gl.glDepthFunc(GL_LESS);
                 program.init(gl);
-                IntBuffer intBuffer = IntBuffer.allocate(1);
-                gl.glGenBuffers(1, intBuffer);
-                vertexBuffer = intBuffer.get(0);
-                gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-                gl.glBufferData(GL_ARRAY_BUFFER, vertexBufferData.length * Float.BYTES, Buffers.newDirectFloatBuffer(vertexBufferData), GL_STATIC_DRAW);
-                program.allocateUniform(gl, "MVP", (gl2, loc) -> {
-                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewProjectionMatrix().get(Buffers.newDirectFloatBuffer(16)));
-                });
                 program.allocateUniform(gl, "iV", (gl2, loc) -> {
                     gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
-                });
-                program.allocateUniform(gl, "MV", (gl2, loc) -> {
-                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().get(Buffers.newDirectFloatBuffer(16)));
                 });
                 program.allocateUniform(gl, "iP", (gl2, loc) -> {
                     gl2.glUniformMatrix4fv(loc, 1, false, camera.getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
                 });
+                program.allocateUniform(gl, "depthSampleCount", (gl2, loc) -> {
+                    gl2.glUniform1i(loc, 512);
+                });
+                final IntBuffer intBuffer = IntBuffer.allocate(1);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, intBuffer);
+                workGroupCount[0] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, intBuffer);
+                workGroupCount[1] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, intBuffer);
+                workGroupCount[2] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, intBuffer);
+                workGroupSize[0] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, intBuffer);
+                workGroupSize[1] = intBuffer.get(0);
+                gl.glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, intBuffer);
+                workGroupSize[2] = intBuffer.get(0);
+                gl.glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, intBuffer);
+                workGroupInvocations = intBuffer.get(0);
+                texture.init(gl);
+                quadProgram.init(gl);
+                gl.glGenBuffers(1, intBuffer);
+                vertexBuffer = intBuffer.get(0);
+                gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+                gl.glBufferData(GL_ARRAY_BUFFER, vertexBufferData.length * Float.BYTES, Buffers.newDirectFloatBuffer(vertexBufferData), GL_STATIC_DRAW);
 
-                program.allocateUniform(gl, "rayOrigin", (gl2, loc) -> {
-                    final Vector3f rayOrigin = camera.getRayOrigin();
-                    gl2.glUniform3f(loc, rayOrigin.x(), rayOrigin.y(), rayOrigin.z());
-                });
-                program.allocateUniform(gl, "viewSize", (gl2, loc) -> {
-                    gl2.glUniform2f(loc, getCanvasWidth(), getCanvasHeight());
-                });
-                program.allocateUniform(gl, "focalLength", (gl2, loc) -> {
-                    gl2.glUniform1f(loc, camera.getFocalLength());
-                });
             }
 
 
@@ -116,21 +92,25 @@ public class ComputeShader extends JFrame implements iRenderer {
                 gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 program.use(gl);
                 program.setUniforms(gl);
+                texture.render(gl);
+                quadProgram.use(gl);
 
                 // 1st attribute buffer : vertices
                 gl.glEnableVertexAttribArray(0);
                 gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
                 gl.glVertexAttribPointer(
-                        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                        3,                  // size
-                        GL_FLOAT,           // type
-                        false,           // normalized?
-                        0,                  // stride
-                        0            // array buffer offset
+                        0,
+                        2,
+                        GL_FLOAT,
+                        false,
+                        0,
+                        0
                 );
-                // Draw the triangle !
-                gl.glDrawArrays(GL_TRIANGLES, 0, vertexBufferData.length / 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+                gl.glActiveTexture(GL_TEXTURE0);
+                gl.glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
+                gl.glDrawArrays(GL_TRIANGLES, 0, vertexBufferData.length / 2);
                 gl.glDisableVertexAttribArray(0);
+
             }
 
             @Override
@@ -144,6 +124,7 @@ public class ComputeShader extends JFrame implements iRenderer {
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
                 final GL2 gl = drawable.getGL().getGL2();
                 gl.glViewport(x, y, width, height);
+                //TODO update compute shader
             }
         });
     }
@@ -171,7 +152,6 @@ public class ComputeShader extends JFrame implements iRenderer {
     public int getCanvasWidth() {
         return canvas.getSurfaceWidth();
     }
-
 
 
     public static void main(String... args) throws IOException {

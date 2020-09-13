@@ -17,7 +17,7 @@ public class Renderer {
     private static final GLCanvas canvas = new GLCanvas(capabilities);
     private static final Controls controls = new Controls();
     static Program program = Program.maxIntensity;
-    static Volume volume;
+    static VolumeWithCube volume;
     static ColorMap colorMap;
     private static int sampleCount = 512;
     private static float brightness = 1;
@@ -25,7 +25,7 @@ public class Renderer {
     static {
         try {
             colorMap = new ColorMap(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings\\colors1.png"));
-            volume = new Volume(new MosaicVolumeSource(
+            volume = new VolumeWithCube(new MosaicVolumeSource(
                     "Brain - Water",
                     new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
                     2,
@@ -136,11 +136,11 @@ public class Renderer {
 
 
     public static synchronized void setVolume(MosaicVolumeSource volume) throws IOException {
-        setVolume(new Volume(volume));
+        setVolume(new VolumeWithCube(volume));
 
     }
 
-    public static void setVolume(Volume volume) {
+    public static void setVolume(VolumeWithCube volume) {
         Renderer.volume = volume;
         Renderer.volume.hasChanges = true;
         redraw();

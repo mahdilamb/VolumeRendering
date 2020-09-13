@@ -1,7 +1,6 @@
 package com.github.mahdilamb.vrii.test;
 
-import com.github.mahdilamb.vrii.Program;
-import com.github.mahdilamb.vrii.Texture;
+import com.github.mahdilamb.vrii.*;
 import com.github.mahdilamb.vrii.test.arcball.Camera;
 import com.github.mahdilamb.vrii.test.arcball.Controls;
 import com.github.mahdilamb.vrii.test.arcball.iRenderer;
@@ -18,13 +17,25 @@ import java.nio.IntBuffer;
 import static com.jogamp.opengl.GL.*;
 
 
-public class UnprojectCube extends JFrame implements iRenderer {
+public class Cube extends JFrame implements iRenderer {
     private final GLProfile profile = GLProfile.getDefault();
     private final GLCapabilities capabilities = new GLCapabilities(profile);
     private final GLCanvas canvas = new GLCanvas(capabilities);
     final Camera camera = new Camera(this);
     final Controls controls = new Controls(this);
     private final Program program = new Program(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\shaders\\cube"));
+    final Volume volume = new Volume(new MosaicVolumeSource(
+            "Brain - Water",
+            new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\volumes\\sagittal.png"),
+            2,
+            176,
+            .7f
+    ));
+    final ColorMap colorMap = new ColorMap(new File("D:\\Documents\\idea\\VolumeRenderingMark2\\src\\main\\resources\\colorMappings\\colors1.png"));
+    static {
+        ColorMap.opacityNodes[0] = 0;
+        ColorMap.opacityNodes[1] = 1;
+    }
     int vertexBuffer;
     final float[] vertexBufferData = new float[]{
             -1.0f, -1.0f, -1.0f, // triangle 1 : begin
@@ -90,23 +101,24 @@ public class UnprojectCube extends JFrame implements iRenderer {
                 program.allocateUniform(gl, "iV", (gl2, loc) -> {
                     gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
                 });
-                program.allocateUniform(gl, "MV", (gl2, loc) -> {
-                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().get(Buffers.newDirectFloatBuffer(16)));
-                });
                 program.allocateUniform(gl, "iP", (gl2, loc) -> {
                     gl2.glUniformMatrix4fv(loc, 1, false, camera.getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
                 });
 
-                program.allocateUniform(gl, "rayOrigin", (gl2, loc) -> {
-                    final Vector3f rayOrigin = camera.getRayOrigin();
-                    gl2.glUniform3f(loc, rayOrigin.x(), rayOrigin.y(), rayOrigin.z());
-                });
                 program.allocateUniform(gl, "viewSize", (gl2, loc) -> {
                     gl2.glUniform2f(loc, getCanvasWidth(), getCanvasHeight());
                 });
-                program.allocateUniform(gl, "focalLength", (gl2, loc) -> {
-                    gl2.glUniform1f(loc, camera.getFocalLength());
+                program.allocateUniform(gl, "depthSampleCount", (gl2, loc) -> {
+                    gl2.glUniform1i(loc, 512);
                 });
+                program.allocateUniform(gl, "tex", (gl2, loc) -> {
+                    gl2.glUniform1i(loc, 0);
+                });
+                program.allocateUniform(gl, "colorMap", (gl2, loc) -> {
+                    gl2.glUniform1i(loc, 1);
+                });
+                colorMap.init(gl);
+                volume.init(gl);
             }
 
 
@@ -116,7 +128,8 @@ public class UnprojectCube extends JFrame implements iRenderer {
                 gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 program.use(gl);
                 program.setUniforms(gl);
-
+                colorMap.render(gl);
+                volume.render(gl);
                 // 1st attribute buffer : vertices
                 gl.glEnableVertexAttribArray(0);
                 gl.glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -148,7 +161,7 @@ public class UnprojectCube extends JFrame implements iRenderer {
         });
     }
 
-    public UnprojectCube() throws IOException {
+    public Cube() throws IOException {
 
         add(canvas);
         pack();
@@ -175,7 +188,7 @@ public class UnprojectCube extends JFrame implements iRenderer {
 
 
     public static void main(String... args) throws IOException {
-        final UnprojectCube cube = new UnprojectCube();
+        final Cube cube = new Cube();
 
         cube.setVisible(true);
 
