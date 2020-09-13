@@ -44,12 +44,8 @@ public class ComputeShader extends Renderer {
                 gl.glEnable(GL_BLEND);
                 gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 program.init(gl);
-                program.allocateUniform(gl, "iV", (gl2, loc) -> {
-                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
-                });
-                program.allocateUniform(gl, "iP", (gl2, loc) -> {
-                    gl2.glUniformMatrix4fv(loc, 1, false, camera.getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16)));
-                });
+                program.allocateUniform(gl, "iV", (gl2, loc) -> gl2.glUniformMatrix4fv(loc, 1, false, camera.getViewMatrix().invert().get(Buffers.newDirectFloatBuffer(16))));
+                program.allocateUniform(gl, "iP", (gl2, loc) -> gl2.glUniformMatrix4fv(loc, 1, false, camera.getProjectionMatrix().invert().get(Buffers.newDirectFloatBuffer(16))));
                 program.allocateUniform(gl, "depthSampleCount", (gl2, loc) -> {
                     gl2.glUniform1i(loc, sampleCount);
                 });
@@ -116,7 +112,6 @@ public class ComputeShader extends Renderer {
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
                 final GL2 gl = drawable.getGL().getGL2();
                 gl.glViewport(x, y, width, height);
-                //TODO update compute shader
             }
         });
     }

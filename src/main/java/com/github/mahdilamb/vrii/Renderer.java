@@ -13,25 +13,26 @@ import static com.jogamp.opengl.GL3ES3.*;
 
 public abstract class Renderer {
 
-    private static final GLProfile profile = GLProfile.getDefault();
-    private static final GLCapabilities capabilities = new GLCapabilities(profile);
-    private static final GLCanvas canvas = new GLCanvas(capabilities);
+    private final GLProfile profile = GLProfile.getDefault();
+    private final GLCapabilities capabilities = new GLCapabilities(profile);
+    private final GLCanvas canvas = new GLCanvas(capabilities);
     protected final Camera camera = new Camera(this);
     final Controls controls = new Controls(this);
     protected Volume volume;
     protected ColorMap colorMap;
-    public static int sampleCount = 512;
+    public int sampleCount = 512;
     public final int[] workGroupCount = new int[3];
     public final int[] maxWorkGroupSize = new int[3];
     public final int[] workGroupSize = new int[3];
 
     public int workGroupInvocations;
+
     public Renderer(final Volume volume, final ColorMap colorMap) {
 
         this.colorMap = colorMap;
         this.volume = volume;
 
-        canvas.setSize(800, 640);
+        setCanvasSize(800, 640);
 
         canvas.addMouseWheelListener(controls);
         canvas.addMouseMotionListener(controls);
@@ -83,6 +84,7 @@ public abstract class Renderer {
             }
         });
     }
+
     public Renderer() throws IOException {
         this(new Volume(new MosaicVolumeSource(
                         "Brain - Water",
@@ -91,33 +93,34 @@ public abstract class Renderer {
                         176,
                         .7f
                 )),
-                new ColorMap( new File("resources\\colorMappings\\colors1.png"))
+                new ColorMap(new File("resources\\colorMappings\\colors1.png"))
         );
 
 
     }
+
     public void redraw() {
         canvas.display();
     }
 
 
-    public static GLCanvas getCanvas() {
+    public GLCanvas getCanvas() {
         return canvas;
     }
 
-    public static void setCanvasSize(int width, int height) {
+    public void setCanvasSize(int width, int height) {
         canvas.setSize(width, height);
     }
 
-    public static int getWidth() {
+    public int getWidth() {
         return canvas.getSurfaceWidth();
     }
 
-    public static int getHeight() {
+    public int getHeight() {
         return canvas.getSurfaceHeight();
     }
 
-    public static float getAspectRatio() {
+    public float getAspectRatio() {
         return ((float) getWidth()) / getHeight();
     }
 
@@ -135,13 +138,13 @@ public abstract class Renderer {
 
     public void setColorMap(ColorMap colorMap) {
         this.colorMap = colorMap;
-        colorMap.hasChanges = true;
+        ColorMap.hasChanges = true;
         redraw();
     }
 
     public void setOpacityMin(float i) {
         ColorMap.opacityNodes[0] = i;
-        colorMap.hasChanges = true;
+        ColorMap.hasChanges = true;
 
         colorMap.update(null);
         redraw();
